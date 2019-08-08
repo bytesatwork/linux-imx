@@ -4508,6 +4508,7 @@ F:	arch/arm64/boot/dts/freescale/imx8mm-bytedevkit.dts
 F:	arch/arm64/boot/dts/freescale/imx8mm-byteengine.dtsi
 F:	arch/arm64/configs/bytedevkit_imx8mm_defconfig
 F:	drivers/gpu/drm/panel/panel-youritech-ili9806e.c
+F:	drivers/video/logo/logo_baw_clut224.ppm
 
 C-MEDIA CMI8788 DRIVER
 M:	Clemens Ladisch <clemens@ladisch.de>
