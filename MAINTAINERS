@@ -4448,6 +4448,7 @@ F:	arch/arm64/boot/dts/freescale/imx8mp-bytedevkit.dts
 F:	arch/arm64/boot/dts/freescale/imx8mp-byteengine.dtsi
 F:	arch/arm64/boot/dts/freescale/imx93-bytedevkit.dts
 F:	arch/arm64/boot/dts/freescale/imx93-byteengine.dtsi
+F:	arch/arm64/configs/bytedevkit_imx8mm_defconfig
 F:	arch/arm64/configs/bytedevkit_imx8mp_defconfig
 F:	arch/arm64/configs/bytedevkit_imx93_defconfig
 F:	drivers/gpio/gpio-tca6418.c
