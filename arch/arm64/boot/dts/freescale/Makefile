@@ -171,6 +171,7 @@ dtb-$(CONFIG_ARCH_MXC) += imx8dxl-ddr3l-evk-rpmsg.dtb \
 imx8dxl-evk-pcie-ep-rpmsg-dtbs += imx8dxl-evk-rpmsg.dtb imx-pcie0-ep.dtbo
 dtb-$(CONFIG_ARCH_MXC) += imx8dxl-evk-pcie-ep-rpmsg.dtb
 
+dtb-$(CONFIG_ARCH_MXC) += imx8mm-bytedevkit.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-emcon-avari.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-emtop-baseboard.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx8mm-evkb.dtb

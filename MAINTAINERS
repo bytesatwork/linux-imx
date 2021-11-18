@@ -5387,6 +5387,8 @@ F:	.github/workflows/checkpatch.yml
 F:	.gitlab-ci.yml
 F:	Documentation/devicetree/bindings/arm/bytesatwork/bytesatwork.yaml
 F:	Documentation/devicetree/bindings/display/panel/youritech,ili9806e.yaml
+F:	arch/arm64/boot/dts/freescale/imx8mm-bytedevkit.dts
+F:	arch/arm64/boot/dts/freescale/imx8mm-byteengine.dtsi
 F:	arch/arm64/boot/dts/freescale/imx8mp-bytedevkit-v2.dts
 F:	arch/arm64/boot/dts/freescale/imx8mp-bytedevkit.dts
 F:	arch/arm64/boot/dts/freescale/imx8mp-byteengine.dtsi
