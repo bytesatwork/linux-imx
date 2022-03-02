@@ -34,7 +34,7 @@
 
 	pinctrl_pmic: pmicirq {
 		fsl,pins = <
-			MX8MM_IOMUXC_SD1_RESET_B_GPIO2_IO10	0x41	/* R23  SD1_RESET_B  GPIO2_IO10 */
+			MX8MM_IOMUXC_GPIO1_IO03_GPIO1_IO3	0x41	/* AF13  GPIO1_IO03  GPIO1_IO03 */
 		>;
 	};
 
@@ -125,7 +125,7 @@
 
 		pinctrl-names = "default";
 		pinctrl-0 = <&pinctrl_pmic>;
-		gpio_intr = <&gpio2 10 GPIO_ACTIVE_LOW>;
+		gpio_intr = <&gpio1 3 GPIO_ACTIVE_LOW>;
 
 		gpo {
 			nxp,drv = <0x0C>;	/* 0b0000_1100 all gpos with cmos output mode */
