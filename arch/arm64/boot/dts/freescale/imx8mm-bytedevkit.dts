@@ -1,0 +1,215 @@
+// SPDX-License-Identifier: GPL-2.0+
+/*
+ * Copyright (C) 2021 bytes at work AG - https://www.bytesatwork.io
+ *
+ * Based on imx8mm-ddr4-evk.dts:
+ * Copyright 2018 NXP
+ *
+ */
+
+/dts-v1/;
+
+#include "imx8mm-byteengine.dtsi"
+
+/ {
+	model = "byteDEVKIT";
+	compatible = "batw,bytedevkit", "batw,byteengine-imx8mm", "fsl,imx8mm";
+
+	chosen {
+		bootargs = "console=ttymxc0,115200 earlycon=ec_imx6q,0x30890000,115200";
+		stdout-path = &uart2;
+	};
+
+	aliases {
+		mmc0 = &usdhc3;
+		mmc1 = &usdhc2;
+		/delete-property/ mmc2;
+		serial0 = &uart2;
+	};
+
+	backlight {
+		compatible = "pwm-backlight";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_backlight>;
+		pwms = <&pwm1 0 5000000>;
+		brightness-levels = <0 4 8 16 32 64 128 255>;
+		default-brightness-level = <5>;
+	};
+
+	vbus_usb2: fixedregulator1 {
+		compatible = "regulator-fixed";
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_usb2>;
+		regulator-name = "vbus_usb2";
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		gpio = <&gpio5 3 GPIO_ACTIVE_HIGH>;
+	};
+};
+
+&iomuxc {
+	pinctrl_uart2: uart2grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_UART2_RXD_UART2_DCE_RX	0x140	/* F15  UART2_RXD */
+			MX8MM_IOMUXC_UART2_TXD_UART2_DCE_TX	0x140	/* E15  UART2_TXD */
+		>;
+	};
+
+	pinctrl_usdhc2_gpio: usdhc2grpgpio {
+		fsl,pins = <
+			MX8MM_IOMUXC_SD2_CD_B_GPIO2_IO12	0x1c4
+		>;
+	};
+
+	pinctrl_usdhc2: usdhc2grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_SD2_CLK_USDHC2_CLK		0x194
+			MX8MM_IOMUXC_SD2_CMD_USDHC2_CMD		0x1d4
+			MX8MM_IOMUXC_SD2_DATA0_USDHC2_DATA0	0x1d4
+			MX8MM_IOMUXC_SD2_DATA1_USDHC2_DATA1	0x1d4
+			MX8MM_IOMUXC_SD2_DATA2_USDHC2_DATA2	0x1d4
+			MX8MM_IOMUXC_SD2_DATA3_USDHC2_DATA3	0x1d4
+		>;
+	};
+
+	pinctrl_backlight: backlight {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO01_PWM1_OUT	0x116	/* Backlight PWM */
+		>;
+	};
+
+	pinctrl_lcd: lcd {
+		fsl,pins = <
+			MX8MM_IOMUXC_GPIO1_IO13_GPIO1_IO13	0x19	/* DSI reset */
+		>;
+	};
+
+	pinctrl_usb2: usb2 {
+		fsl,pins = <
+			MX8MM_IOMUXC_SPDIF_TX_GPIO5_IO3		0x19	/* SPDIF_TX  GPIO5_IO03  USB1.EN */
+		>;
+	};
+
+	pinctrl_fec1: fec1grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_ENET_MDC_ENET1_MDC			0x3	/* AC27  ENET_MDC */
+			MX8MM_IOMUXC_ENET_MDIO_ENET1_MDIO		0x3	/* AB27  ENET_MDIO */
+			MX8MM_IOMUXC_ENET_TD2_ENET1_TX_CLK		0x4000001f	/* AG25  ENET_TD2  RMII.REF_CLK */
+			MX8MM_IOMUXC_ENET_RD0_ENET1_RGMII_RD0		0x91	/* AE27  ENET_RD0 */
+			MX8MM_IOMUXC_ENET_RD1_ENET1_RGMII_RD1		0x91	/* AD27  ENET_RD1 */
+			MX8MM_IOMUXC_ENET_TD0_ENET1_RGMII_TD0		0x1f	/* AG26  ENET_TD0 */
+			MX8MM_IOMUXC_ENET_TD1_ENET1_RGMII_TD1		0x1f	/* AF26  ENET_TD1 */
+			MX8MM_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91	/* AF27  ENET_RX_CTL CRS_DV */
+			MX8MM_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f	/* AF24  ENET_TX_CTL TX_EN */
+			MX8MM_IOMUXC_UART3_TXD_GPIO5_IO27		0x6	/* D18   GPIO5_IO27  ETH_RESET~ */
+		>;
+	};
+
+	pinctrl_i2c1: i2c1grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_I2C1_SCL_I2C1_SCL			0x400001c3	/* E9  I2C1_SCL */
+			MX8MM_IOMUXC_I2C1_SDA_I2C1_SDA			0x400001c3	/* F9  I2C1_SDA */
+		>;
+	};
+
+	pinctrl_touch: touchgrp {
+		fsl,pins = <
+			MX8MM_IOMUXC_UART1_TXD_GPIO5_IO23		0x19	/* F13   UART1_TXD   GPIO5_IO23  TOUCH_INT */
+			MX8MM_IOMUXC_GPIO1_IO12_GPIO1_IO12		0x6	/* AB10  GPIO1_IO12  GPIO1_IO12  TOUCH_RST */
+		>;
+	};
+};
+
+&lcdif {
+	status = "okay";
+};
+
+&mipi_dsi {
+	status = "okay";
+
+	panel@0 {
+		compatible = "youritec,ili9806";
+		reg = <0>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_lcd>;
+		reset-gpios = <&gpio1 13 GPIO_ACTIVE_HIGH>;
+		dsi-lanes = <2>;
+		video-mode = <2>;       /* 0: burst mode
+					 * 1: non-burst mode with sync event
+					 * 2: non-burst mode with sync pulse
+					 */
+		panel-width-mm = <62>;  /* active area */
+		panel-height-mm = <110>;
+		status = "okay";
+	};
+};
+
+&uart2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_uart2>;
+	status = "okay";
+};
+
+&usbotg1 {
+	dr_mode = "peripheral";
+	status = "okay";
+};
+
+&usbotg2 {
+	dr_mode = "host";
+	status = "okay";
+};
+
+&usbphynop2 {
+	vbus-regulator = <&vbus_usb2>;
+};
+
+&usdhc2 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_usdhc2>, <&pinctrl_usdhc2_gpio>;
+	bus-width = <4>;
+	cd-gpios = <&gpio2 12 GPIO_ACTIVE_LOW>;
+	status = "okay";
+};
+
+&pwm1 {
+	status = "okay";
+};
+
+&fec1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec1>;
+	phy-mode = "rmii";
+	phy-handle = <&ethphy0>;
+	fsl,magic-packet;
+	phy-reset-gpios = <&gpio5 27 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy0: ethernet-phy@0 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <0>;
+		};
+	};
+};
+
+&i2c1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_i2c1>;
+	status = "okay";
+
+	gt911@5d {
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_touch>;
+		compatible = "goodix,gt911";
+		reg = <0x5d>;
+		interrupt-parent = <&gpio5>;
+		interrupts = <23 0>;
+
+		irq-gpios = <&gpio5 23 0>;
+		reset-gpios = <&gpio1 12 0>;
+	};
+};
