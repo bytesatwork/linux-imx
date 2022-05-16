@@ -93,6 +93,21 @@
 			MX8MM_IOMUXC_SPDIF_TX_GPIO5_IO3		0x19	/* SPDIF_TX  GPIO5_IO03  USB1.EN */
 		>;
 	};
+
+	pinctrl_fec1: fec1grp {
+		fsl,pins = <
+			MX8MM_IOMUXC_ENET_MDC_ENET1_MDC			0x3	/* AC27  ENET_MDC */
+			MX8MM_IOMUXC_ENET_MDIO_ENET1_MDIO		0x3	/* AB27  ENET_MDIO */
+			MX8MM_IOMUXC_ENET_TD2_ENET1_TX_CLK		0x4000001f	/* AG25  ENET_TD2  RMII.REF_CLK */
+			MX8MM_IOMUXC_ENET_RD0_ENET1_RGMII_RD0		0x91	/* AE27  ENET_RD0 */
+			MX8MM_IOMUXC_ENET_RD1_ENET1_RGMII_RD1		0x91	/* AD27  ENET_RD1 */
+			MX8MM_IOMUXC_ENET_TD0_ENET1_RGMII_TD0		0x1f	/* AG26  ENET_TD0 */
+			MX8MM_IOMUXC_ENET_TD1_ENET1_RGMII_TD1		0x1f	/* AF26  ENET_TD1 */
+			MX8MM_IOMUXC_ENET_RX_CTL_ENET1_RGMII_RX_CTL	0x91	/* AF27  ENET_RX_CTL CRS_DV */
+			MX8MM_IOMUXC_ENET_TX_CTL_ENET1_RGMII_TX_CTL	0x1f	/* AF24  ENET_TX_CTL TX_EN */
+			MX8MM_IOMUXC_UART3_TXD_GPIO5_IO27		0x6	/* D18   GPIO5_IO27  ETH_RESET~ */
+		>;
+	};
 };
 
 &lcdif {
@@ -149,4 +164,24 @@
 
 &pwm1 {
 	status = "okay";
+};
+
+&fec1 {
+	pinctrl-names = "default";
+	pinctrl-0 = <&pinctrl_fec1>;
+	phy-mode = "rmii";
+	phy-handle = <&ethphy0>;
+	fsl,magic-packet;
+	phy-reset-gpios = <&gpio5 27 GPIO_ACTIVE_LOW>;
+	status = "okay";
+
+	mdio {
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		ethphy0: ethernet-phy@0 {
+			compatible = "ethernet-phy-ieee802.3-c22";
+			reg = <0>;
+		};
+	};
 };
