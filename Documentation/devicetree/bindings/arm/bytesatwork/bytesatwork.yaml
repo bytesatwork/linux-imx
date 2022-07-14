@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: GPL-2.0-only OR BSD-2-Clause
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/arm/bytesatwork/bytesatwork.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: bytesatwork Platforms Device Tree Bindings
+
+maintainers:
+  - Daniel Ammann <daniel.ammann@bytesatwork.ch>
+
+properties:
+  $nodename:
+    const: "/"
+  compatible:
+    oneOf:
+      - description: bytesatwork byteENGINE
+        items:
+          - enum:
+              - bytesatwork,byteengine-am62x
+              - bytesatwork,byteengine-imx8mm
+              - bytesatwork,byteengine-imx8mp
+              - bytesatwork,byteengine-stm32mp1
+
+      - description: bytesatwork byteDEVKIT
+        items:
+          - enum:
+              - bytesatwork,bytedevkit-am62x
+              - bytesatwork,bytedevkit-imx8mm
+              - bytesatwork,bytedevkit-imx8mp
+              - bytesatwork,bytedevkit-stm32mp1
+
+additionalProperties: true
+
+...
