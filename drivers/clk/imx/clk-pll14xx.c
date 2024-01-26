@@ -64,6 +64,7 @@ static const struct imx_pll14xx_rate_table imx_pll1443x_tbl[] = {
 	PLL_1443X_RATE(519750000U, 173, 2, 2, 16384),
 	PLL_1443X_RATE(393216000U, 262, 2, 3, 9437),
 	PLL_1443X_RATE(361267200U, 361, 3, 3, 17511),
+	PLL_1443X_RATE(168000000U, 56, 2, 2, 0),
 };
 
 struct imx_pll14xx_clk imx_1443x_pll = {
