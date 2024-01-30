@@ -4443,6 +4443,9 @@ S:	Maintained
 F:	.github/workflows/checkpatch.yml
 F:	Documentation/devicetree/bindings/arm/bytesatwork/bytesatwork.yaml
 F:	Documentation/devicetree/bindings/display/panel/youritech,ili9806e.yaml
+F:	arch/arm64/boot/dts/freescale/imx8mp-bytedevkit-v2.dts
+F:	arch/arm64/boot/dts/freescale/imx8mp-bytedevkit.dts
+F:	arch/arm64/boot/dts/freescale/imx8mp-byteengine.dtsi
 F:	arch/arm64/boot/dts/freescale/imx93-bytedevkit.dts
 F:	arch/arm64/boot/dts/freescale/imx93-byteengine.dtsi
 F:	arch/arm64/configs/bytedevkit_imx8mp_defconfig
