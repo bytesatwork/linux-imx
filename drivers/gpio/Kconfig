@@ -1264,6 +1264,15 @@ config GPIO_PI4IOE5V6408
 	  To compile this driver as a module, choose M here: the module will
 	  be called gpio-pi4ioe5v6408.
 
+config GPIO_TCA6418
+	tristate "TCA6418 GPIO expander"
+	depends on OF_GPIO
+	select REGMAP_I2C
+	select GPIOLIB_IRQCHIP
+	help
+	  This enables support for the GPIOs found on the TCA6418
+	  I/O Expander.
+
 config GPIO_TPIC2810
 	tristate "TPIC2810 8-Bit I2C GPO expander"
 	help
