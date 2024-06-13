@@ -5385,6 +5385,7 @@ M:	Daniel Ammann <daniel.ammann@bytesatwork.ch>
 S:	Maintained
 F:	.github/workflows/checkpatch.yml
 F:	.gitlab-ci.yml
+F:	Documentation/devicetree/bindings/arm/bytesatwork/bytesatwork.yaml
 
 C-MEDIA CMI8788 DRIVER
 M:	Clemens Ladisch <clemens@ladisch.de>
