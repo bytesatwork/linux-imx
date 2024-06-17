@@ -847,6 +847,7 @@ imx8qxp-mek-max9286-rpmsg-dtbs := imx8qxp-mek-rpmsg.dtb imx8qxp-mek-max9286.dtbo
 dtb-${CONFIG_ARCH_MXC} += imx8qxp-mek-max9286-rpmsg.dtb
 
 dtb-$(CONFIG_ARCH_MXC) += imx93-tqma9352-mba93xxca.dtb
+dtb-$(CONFIG_ARCH_MXC) += imx93-bytedevkit.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-tqma9352-mba93xxla.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx93-var-som-symphony.dtb
 dtb-$(CONFIG_ARCH_MXC) += imx91-9x9-qsb.dtb \

@@ -5387,6 +5387,8 @@ F:	.github/workflows/checkpatch.yml
 F:	.gitlab-ci.yml
 F:	Documentation/devicetree/bindings/arm/bytesatwork/bytesatwork.yaml
 F:	Documentation/devicetree/bindings/display/panel/youritech,ili9806e.yaml
+F:	arch/arm64/boot/dts/freescale/imx93-bytedevkit.dts
+F:	arch/arm64/boot/dts/freescale/imx93-byteengine.dtsi
 F:	arch/arm64/configs/bytedevkit_imx93_defconfig
 F:	drivers/gpio/gpio-tca6418.c
 F:	drivers/gpu/drm/panel/panel-youritech-ili9806e.c
