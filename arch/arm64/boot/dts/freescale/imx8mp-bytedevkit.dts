@@ -207,9 +207,9 @@
 		compatible = "goodix,gt911";
 		reg = <0x5d>;
 		interrupt-parent = <&gpio5>;
-		interrupts = <27 0>;
-		irq-gpios = <&gpio5 27 0>;
-		reset-gpios = <&gpio5 26 0>;
+		interrupts = <13 0>;
+		irq-gpios = <&gpio5 13 0>;
+		reset-gpios = <&gpio5 11 0>;
 		touchscreen-inverted-x;
 		touchscreen-inverted-y;
 	};
@@ -492,8 +492,8 @@
 
 	pinctrl_touch: touch_grp {
 		fsl,pins = <
-			MX8MP_IOMUXC_UART3_RXD__GPIO5_IO26	0x10	/* Touch Reset*/
-			MX8MP_IOMUXC_UART3_TXD__GPIO5_IO27	0x10	/* Touch Int */
+			MX8MP_IOMUXC_ECSPI2_MOSI__GPIO5_IO11	0x10	/* Touch Reset*/
+			MX8MP_IOMUXC_ECSPI2_SS0__GPIO5_IO13	0x10	/* Touch Int */
 		>;
 	};
 
