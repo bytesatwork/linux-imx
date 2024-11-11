@@ -197,9 +197,9 @@
 		compatible = "goodix,gt911";
 		reg = <0x5d>;
 		interrupt-parent = <&gpio2>;
-		interrupts = <23 0>;
-		irq-gpios = <&gpio2 23 0>;
-		reset-gpios = <&gpio2 24 0>;
+		interrupts = <21 0>;
+		irq-gpios = <&gpio2 21 0>;
+		reset-gpios = <&gpio2 20 0>;
 	};
 };
 
@@ -279,7 +279,7 @@
 		compatible = "youritech,ili9806e";
 		reg = <0>;
 		backlight = <&mipi_bl>;
-		reset-gpio = <&gpio2 22 GPIO_ACTIVE_HIGH>;
+		reset-gpio = <&gpio2 10 GPIO_ACTIVE_HIGH>;
 		dsi-lanes = <2>;
 		video-mode = <2>;	/* 0: burst mode
 					 * 1: non-burst mode with sync event
@@ -494,15 +494,15 @@
 
 	pinctrl_mipi_touch: mipi_touch_grp {
 		fsl,pins = <
-			MX93_PAD_GPIO_IO23__GPIO2_IO23		0x31e	/* MIPI Touch INT */
-			MX93_PAD_GPIO_IO24__GPIO2_IO24		0x31e	/* MIPI Touch RST */
+			MX93_PAD_GPIO_IO21__GPIO2_IO21		0x31e	/* MIPI Touch INT */
+			MX93_PAD_GPIO_IO20__GPIO2_IO20		0x31e	/* MIPI Touch RST */
 		>;
 	};
 
 	pinctrl_mipi_blacklight: mipi_bl_grp {
 		fsl,pins = <
 			MX93_PAD_CCM_CLKO1__GPIO3_IO26		0x31e	/* MIPI Backlight */
-			MX93_PAD_GPIO_IO22__GPIO2_IO22		0x31e	/* MIPI Reset */
+			MX93_PAD_GPIO_IO10__GPIO2_IO10		0x31e	/* MIPI Reset */
 		>;
 	};
 };
