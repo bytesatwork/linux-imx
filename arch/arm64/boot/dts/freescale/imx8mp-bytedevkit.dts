@@ -292,6 +292,7 @@
 	pinctrl-0 = <&pinctrl_usb1_vbus>;
 	usb-role-switch;
 	dr_mode = "otg";
+	role-switch-default-mode = "host";
 	status = "okay";
 	/* dual role is implemented, but not a full featured OTG */
 	hnp-disable;
