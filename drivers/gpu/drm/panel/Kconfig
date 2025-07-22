@@ -880,4 +880,13 @@ config DRM_PANEL_YOURITECH_ILI9806E
 	help
 	  Say Y here if you want to enable support for Youritech
 	  ILI9806E DSI panel.
+
+config DRM_PANEL_YOURITECH_ILI9806E_DISABLE_BURST_MODE
+	bool "Disable video burst mode"
+	depends on DRM_PANEL_YOURITECH_ILI9806E
+	default n
+	help
+	  Disable video burst mode for the Youritech ILI9806E panel.
+	  This is required for some panel/SoC combinations to work correctly.
+	  If unsure, say N.
 endmenu

@@ -490,6 +490,9 @@ static int ili9806e_panel_probe(struct mipi_dsi_device *dsi)
 	dsi->format = MIPI_DSI_FMT_RGB888;
 	dsi->mode_flags = MIPI_DSI_MODE_VIDEO | MIPI_DSI_MODE_VIDEO_BURST |
 			  MIPI_DSI_MODE_LPM;
+#ifdef CONFIG_DRM_PANEL_YOURITECH_ILI9806E_DISABLE_BURST_MODE
+	dsi->mode_flags &= ~MIPI_DSI_MODE_VIDEO_BURST;
+#endif
 	ret = of_property_read_u32(np, "video-mode", &video_mode);
 	if (!ret) {
 		switch (video_mode) {
