@@ -40,7 +40,7 @@
 		regulator-name = "USB1_VBUS";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio2 18 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio2 11 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 	};
 
@@ -49,7 +49,7 @@
 		regulator-name = "USB2_VBUS";
 		regulator-min-microvolt = <5000000>;
 		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio2 19 GPIO_ACTIVE_HIGH>;
+		gpio = <&gpio2 18 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 		regulator-always-on;
 	};
@@ -469,13 +469,13 @@
 
 	pinctrl_usb1: usb1_grp {
 		fsl,pins = <
-			MX93_PAD_GPIO_IO18__GPIO2_IO18		0x31e
+			MX93_PAD_GPIO_IO11__GPIO2_IO11		0x31e
 		>;
 	};
 
 	pinctrl_usb2: usb2_grp {
 		fsl,pins = <
-			MX93_PAD_GPIO_IO19__GPIO2_IO19		0x31e
+			MX93_PAD_GPIO_IO18__GPIO2_IO18		0x31e
 		>;
 	};
 
