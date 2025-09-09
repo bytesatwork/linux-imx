@@ -8,6 +8,18 @@
 / {
 	model = "bytesatwork byteENGINE i.MX93";
 	compatible = "bytesatwork,byteengine-imx93", "fsl,imx93";
+
+	reserved-memory {
+		#address-cells = <2>;
+		#size-cells = <2>;
+		ranges;
+
+		ele_reserved: ele-reserved@a4120000 {
+			compatible = "shared-dma-pool";
+			reg = <0 0xa4120000 0 0x100000>;
+			no-map;
+		};
+	};
 };
 
 &mu1 {
@@ -128,6 +140,10 @@
 
 &wdog3 {
 	status = "okay";
+};
+
+&ele_fw2 {
+	memory-region = <&ele_reserved>;
 };
 
 &iomuxc {
