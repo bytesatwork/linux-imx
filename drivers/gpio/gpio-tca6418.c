@@ -264,7 +264,7 @@ static int tca6418_gpio_get(struct gpio_chip *chip, unsigned int line)
 	return ret;
 }
 
-static void tca6418_gpio_set(struct gpio_chip *chip, unsigned int line,
+static int tca6418_gpio_set(struct gpio_chip *chip, unsigned int line,
 			     int value)
 {
 	struct tca6418_chip *tca6418 = gpiochip_get_data(chip);
@@ -273,7 +273,7 @@ static void tca6418_gpio_set(struct gpio_chip *chip, unsigned int line,
 	u8 mask;
 
 	if (tca6418_line_to_data_reg(line, &reg))
-		return;
+		return -EINVAL;
 	mask = tca6418_line_to_mask(line);
 
 	tca6418_bus_lock(tca6418);
@@ -282,6 +282,8 @@ static void tca6418_gpio_set(struct gpio_chip *chip, unsigned int line,
 
 	if (ret)
 		dev_warn(tca6418->parent, "Could not set gpio: %i\n", ret);
+
+	return ret;
 }
 
 static const struct gpio_chip tca6418_gpio = {
