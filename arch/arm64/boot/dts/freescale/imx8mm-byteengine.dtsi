@@ -8,6 +8,7 @@
  */
 
 #include "imx8mm.dtsi"
+#include "imx8mm-nxp-display.dtsi"
 
 / {
 	compatible = "bytesatwork,byteengine-imx8mm", "fsl,imx8mm";
@@ -234,8 +235,12 @@
 	status = "okay";
 };
 
-&gpu {
-	status = "okay";
+&pgc_gpumix {
+	status = "disabled";
+};
+
+&pgc_gpu {
+	power-domains = <>;
 };
 
 &vpu_g1 {
