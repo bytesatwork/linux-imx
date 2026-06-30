@@ -4,6 +4,7 @@
  */
 
 #include "imx8mp.dtsi"
+#include "imx8mp-nxp-display.dtsi"
 
 / {
 	model = "bytesatwork byteENGINE IMX8MP";
@@ -128,19 +129,31 @@
 	status = "okay";
 };
 
-&gpu_3d {
+&gpu3d {
 	status = "okay";
 };
 
-&gpu_2d {
+&gpu2d {
 	status = "okay";
 };
 
-&ml_vipsi {
+&npu {
 	status = "okay";
 };
 
 &mix_gpu_ml {
+	status = "disabled";
+};
+
+&pgc_gpumix {
+	status = "okay";
+};
+
+&pgc_gpu2d {
+	status = "okay";
+};
+
+&pgc_gpu3d {
 	status = "okay";
 };
 

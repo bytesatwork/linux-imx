@@ -100,16 +100,15 @@
 			"Headphone Jack", "HP_OUT",
 			"Speaker Ext", "LINE_OUT";
 
+		simple-audio-card,frame-master = <&codec_dai>;
+		simple-audio-card,bitclock-master = <&codec_dai>;
+
 		simple-audio-card,cpu {
 			sound-dai = <&sai3>;
-			frame-master;
-			bitclock-master;
 		};
 
-		simple-audio-card,codec {
+		codec_dai: simple-audio-card,codec {
 			sound-dai = <&sgtl5000>;
-			frame-master;
-			bitclock-master;
 			system-clock-frequency = <24000000>;
 		};
 	};
