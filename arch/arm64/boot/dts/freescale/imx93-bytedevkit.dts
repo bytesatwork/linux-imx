@@ -12,6 +12,10 @@
 	model = "bytesatwork byteDEVKIT OSM i.MX93";
 	compatible = "bytesatwork,bytedevkit-imx93", "bytesatwork,byteengine-imx93", "fsl,imx93";
 
+	aliases {
+		serial0 = &lpuart1;
+	};
+
 	chosen {
 		stdout-path = &lpuart1;
 	};
