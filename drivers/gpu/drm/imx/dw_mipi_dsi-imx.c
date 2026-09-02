@@ -91,6 +91,7 @@ static bool dw_mipi_dsi_imx_is_mode_clock_valid(int clock)
 		108000, 108108,
 		132000,
 		148352, 148500,
+		30000,
 	};
 
 	for (i = 0; i < ARRAY_SIZE(valid_mode_clocks); i++) {
