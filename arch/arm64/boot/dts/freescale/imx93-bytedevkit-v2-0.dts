@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 /*
- * Copyright 2024 bytesatwork AG
+ * Copyright 2026 bytesatwork AG
  */
 
 /dts-v1/;
@@ -9,7 +9,7 @@
 #include "imx93-byteengine.dtsi"
 
 / {
-	model = "bytesatwork byteDEVKIT OSM i.MX93";
+	model = "bytesatwork byteDEVKIT OSM V2.0 i.MX93";
 	compatible = "bytesatwork,bytedevkit-imx93", "bytesatwork,byteengine-imx93", "fsl,imx93";
 
 	aliases {
@@ -36,15 +36,6 @@
 		regulator-max-microvolt = <3300000>;
 		gpio = <&gpio3 7 GPIO_ACTIVE_HIGH>;
 		off-on-delay-us = <12000>;
-		enable-active-high;
-	};
-
-	reg_usb_otg1_vbus: regulator-otg {
-		compatible = "regulator-fixed";
-		regulator-name = "USB1_VBUS";
-		regulator-min-microvolt = <5000000>;
-		regulator-max-microvolt = <5000000>;
-		gpio = <&gpio2 11 GPIO_ACTIVE_HIGH>;
 		enable-active-high;
 	};
 
@@ -148,9 +139,9 @@
 		#size-cells = <0>;
 		clock-frequency = <5000000>;
 
-		ethphy_fec: ethernet-phyfec@0 {
+		ethphy_fec: ethernet-phyfec@c {
 			compatible = "ethernet-phy-ieee802.3-c22";
-			reg = <0>;
+			reg = <0xc>;
 			pinctrl-names = "default";
 			enet-phy-lane-no-swap;
 			ti,rx-internal-delay = <DP83867_RGMIIDCTL_2_25_NS>;
@@ -224,10 +215,7 @@
 };
 
 &usbotg1 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&pinctrl_usb1>;
-	dr_mode = "otg";
-	vbus-supply = <&reg_usb_otg1_vbus>;
+	dr_mode = "host";
 	status = "okay";
 };
 
@@ -466,12 +454,6 @@
 			MX93_PAD_SD2_DATA2__GPIO3_IO05		0x51e
 			MX93_PAD_SD2_DATA3__GPIO3_IO06		0x51e
 			MX93_PAD_SD2_VSELECT__GPIO3_IO19	0x51e
-		>;
-	};
-
-	pinctrl_usb1: usb1_grp {
-		fsl,pins = <
-			MX93_PAD_GPIO_IO11__GPIO2_IO11		0x31e
 		>;
 	};
 
