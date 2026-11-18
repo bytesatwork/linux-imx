@@ -10,6 +10,7 @@
 
 #include <linux/atomic.h>
 #include <linux/bitmap.h>
+#include <linux/bitrev.h>
 #include <linux/cleanup.h>
 #include <linux/device.h>
 #include <linux/errno.h>
@@ -38,9 +39,14 @@
 #define PCA953X_INVERT		0x02
 #define PCA953X_DIRECTION	0x03
 
+#define TCA6418_INT_STATUS	0x02
+#define TCA6418_GPIO_INT_STATUS	0x11
 #define TCA6418_INPUT		0x14
 #define TCA6418_OUTPUT		0x17
+#define TCA6418_GPIO_INT_ENABLE	0x1a
 #define TCA6418_DIRECTION	0x23
+#define TCA6418_GPIO_INT_LEVEL	0x26
+#define TCA6418_GPI_INT		BIT(1)
 
 #define REG_ADDR_MASK		GENMASK(5, 0)
 #define REG_ADDR_EXT		BIT(6)
@@ -385,21 +391,44 @@ static bool pcal6534_check_register(struct pca953x_chip *chip, unsigned int reg,
 	return true;
 }
 
+static void tca6418_revert_low_byte(unsigned long *reg_val)
+{
+	bitmap_set_value8(reg_val, bitrev8(bitmap_get_value8(reg_val, 0)),
+					  0);
+}
+
 /* TCA6418 breaks the PCA953x register order rule */
 static bool tca6418_check_register(struct pca953x_chip *chip, unsigned int reg,
 				   u32 access_type_mask)
 {
-	/*  Valid Input Registers - BIT(0) for readable access */
-	if (reg >= TCA6418_INPUT && reg < (TCA6418_INPUT + NBANK(chip)))
-		return (access_type_mask & BIT(0));
+	/*
+	 * BIT(0) readable
+	 * BIT(1) writable
+	 * BIT(2) volatile
+	 */
+	if (reg == TCA6418_INT_STATUS)
+		return access_type_mask & (BIT(0) | BIT(1) | BIT(2));
 
-	/*  Valid Output Registers - BIT(1) for writeable access */
+	if (reg >= TCA6418_GPIO_INT_STATUS &&
+	    reg < TCA6418_GPIO_INT_STATUS + NBANK(chip))
+		return access_type_mask & (BIT(0) | BIT(2));
+
+	if (reg >= TCA6418_INPUT && reg < (TCA6418_INPUT + NBANK(chip)))
+		return (access_type_mask & (BIT(0) | BIT(2)));
+
 	if (reg >= TCA6418_OUTPUT && reg < (TCA6418_OUTPUT + NBANK(chip)))
 		return (access_type_mask & (BIT(0) | BIT(1)));
 
-	/*  Valid Direction Registers - BIT(2) for volatile access */
+	if (reg >= TCA6418_GPIO_INT_ENABLE &&
+	    reg < TCA6418_GPIO_INT_ENABLE + NBANK(chip))
+		return access_type_mask & (BIT(0) | BIT(1));
+
 	if (reg >= TCA6418_DIRECTION && reg < (TCA6418_DIRECTION + NBANK(chip)))
 		return (access_type_mask & (BIT(0) | BIT(1)));
+
+	if (reg >= TCA6418_GPIO_INT_LEVEL &&
+	    reg < TCA6418_GPIO_INT_LEVEL + NBANK(chip))
+		return access_type_mask & (BIT(0) | BIT(1));
 
 	return false;
 }
@@ -711,14 +740,18 @@ static int pca953x_gpio_get_multiple(struct gpio_chip *gc,
 	if (ret)
 		return ret;
 
+	if (PCA_CHIP_TYPE(chip->driver_data) == TCA6418_TYPE)
+		tca6418_revert_low_byte(reg_val);
+
 	bitmap_replace(bits, bits, reg_val, mask, gc->ngpio);
 	return 0;
 }
 
-static int pca953x_gpio_set_multiple(struct gpio_chip *gc,
-				     unsigned long *mask, unsigned long *bits)
+static int pca953x_gpio_set_multiple(struct gpio_chip *gc, unsigned long *mask,
+				     unsigned long *bits)
 {
 	struct pca953x_chip *chip = gpiochip_get_data(gc);
+	bool is_tca6418 = PCA_CHIP_TYPE(chip->driver_data) == TCA6418_TYPE;
 	DECLARE_BITMAP(reg_val, MAX_LINE);
 	int ret;
 
@@ -728,7 +761,14 @@ static int pca953x_gpio_set_multiple(struct gpio_chip *gc,
 	if (ret)
 		return ret;
 
+	/* TCA6418's first bank is reversed relative to GPIO offsets. */
+	if (is_tca6418)
+		tca6418_revert_low_byte(reg_val);
+
 	bitmap_replace(reg_val, reg_val, bits, mask, gc->ngpio);
+
+	if (is_tca6418)
+		tca6418_revert_low_byte(reg_val);
 
 	return pca953x_write_regs(chip, chip->regs->output, reg_val);
 }
@@ -925,6 +965,74 @@ static void pca953x_irq_print_chip(struct irq_data *data, struct seq_file *p)
 	seq_puts(p, dev_name(gc->parent));
 }
 
+static int tca6418_irq_set_type(struct irq_data *d, unsigned int type)
+{
+	struct gpio_chip *gc = irq_data_get_irq_chip_data(d);
+	struct pca953x_chip *pca953x = gpiochip_get_data(gc);
+
+	if (type != IRQ_TYPE_EDGE_RISING && type != IRQ_TYPE_EDGE_FALLING) {
+		dev_err(&pca953x->client->dev, "Only rising or falling edge are supported\n");
+		return -EINVAL;
+	}
+
+	return pca953x_irq_set_type(d, type);
+}
+
+static void tca6418_irq_bus_sync_unlock(struct irq_data *d)
+{
+	struct gpio_chip *gc = irq_data_get_irq_chip_data(d);
+	struct pca953x_chip *chip = gpiochip_get_data(gc);
+	struct device *dev = &chip->client->dev;
+	DECLARE_BITMAP(irq_enabled, MAX_LINE);
+	DECLARE_BITMAP(irq_level, MAX_LINE);
+	DECLARE_BITMAP(irq_inputs, MAX_LINE);
+	unsigned int offset;
+	int ret;
+
+	bitmap_or(irq_inputs, chip->irq_trig_raise, chip->irq_trig_fall,
+		  gc->ngpio);
+	bitmap_copy(irq_enabled, chip->irq_mask, gc->ngpio);
+	for_each_set_bit(offset, irq_inputs, gc->ngpio) {
+		ret = pca953x_gpio_direction_input(gc, offset);
+		if (ret) {
+			dev_err(dev, "failed to set IRQ line %u as input: %d\n",
+				offset, ret);
+			clear_bit(offset, irq_enabled);
+		}
+	}
+
+	bitmap_copy(irq_level, chip->irq_trig_raise, gc->ngpio);
+	tca6418_revert_low_byte(irq_level);
+	tca6418_revert_low_byte(irq_enabled);
+
+	{
+		guard(mutex)(&chip->i2c_lock);
+		ret = pca953x_write_regs(chip, TCA6418_GPIO_INT_LEVEL,
+					 irq_level);
+		if (!ret)
+			ret = pca953x_write_regs(chip, TCA6418_GPIO_INT_ENABLE,
+						 irq_enabled);
+	}
+	if (ret)
+		dev_err(dev, "failed to configure TCA6418 interrupts: %d\n",
+			ret);
+
+	mutex_unlock(&chip->irq_lock);
+}
+
+static const struct irq_chip tca6418_irq_chip = {
+	.irq_mask		= pca953x_irq_mask,
+	.irq_unmask		= pca953x_irq_unmask,
+	.irq_set_wake		= pca953x_irq_set_wake,
+	.irq_bus_lock		= pca953x_irq_bus_lock,
+	.irq_bus_sync_unlock	= tca6418_irq_bus_sync_unlock,
+	.irq_set_type		= tca6418_irq_set_type,
+	.irq_shutdown		= pca953x_irq_shutdown,
+	.irq_print_chip		= pca953x_irq_print_chip,
+	.flags			= IRQCHIP_IMMUTABLE,
+	GPIOCHIP_IRQ_RESOURCE_HELPERS,
+};
+
 static const struct irq_chip pca953x_irq_chip = {
 	.irq_mask		= pca953x_irq_mask,
 	.irq_unmask		= pca953x_irq_unmask,
@@ -1011,6 +1119,80 @@ static bool pca953x_irq_pending(struct pca953x_chip *chip, unsigned long *pendin
 	return !bitmap_empty(pending, gc->ngpio);
 }
 
+static int tca6418_irq_pending(struct pca953x_chip *chip,
+			       unsigned long *pending, bool *asserted)
+{
+	struct gpio_chip *gc = &chip->gpio_chip;
+	struct device *dev = &chip->client->dev;
+	u8 int_status[MAX_BANK];
+	unsigned int status;
+	int i, ret;
+
+	lockdep_assert_held(&chip->irq_lock);
+	lockdep_assert_held(&chip->i2c_lock);
+
+	*asserted = false;
+	ret = regmap_read(chip->regmap, TCA6418_INT_STATUS, &status);
+	if (ret || !(status & TCA6418_GPI_INT))
+		return ret;
+
+	*asserted = true;
+	ret = regmap_bulk_read(chip->regmap, TCA6418_GPIO_INT_STATUS,
+			       int_status, NBANK(chip));
+	if (ret) {
+		dev_err_ratelimited(dev, "failed read int status: %d\n", ret);
+		return ret;
+	}
+
+	for (i = 0; i < NBANK(chip); i++)
+		bitmap_set_value8(pending, int_status[i], i * BANK_SZ);
+	tca6418_revert_low_byte(pending);
+	bitmap_and(pending, pending, chip->irq_mask, gc->ngpio);
+
+	ret = regmap_write(chip->regmap, TCA6418_INT_STATUS, TCA6418_GPI_INT);
+	if (ret)
+		dev_err_ratelimited(dev, "failed to handle TCA6418 IRQ: %d\n", ret);
+
+	return ret;
+}
+
+static irqreturn_t tca6418_irq_handler(struct pca953x_chip *chip)
+{
+	struct gpio_chip *gc = &chip->gpio_chip;
+	struct device *dev = &chip->client->dev;
+	DECLARE_BITMAP(pending, MAX_LINE);
+	bool asserted = false;
+	int level, ret;
+
+	for (;;) {
+		bitmap_zero(pending, MAX_LINE);
+		{
+			guard(mutex)(&chip->irq_lock);
+			guard(mutex)(&chip->i2c_lock);
+			ret = tca6418_irq_pending(chip, pending, &asserted);
+		}
+
+		if (ret || !asserted)
+			break;
+
+		for_each_set_bit(level, pending, gc->ngpio) {
+			int nested_irq =
+				irq_find_mapping(gc->irq.domain, level);
+
+			if (unlikely(nested_irq <= 0)) {
+				dev_warn_ratelimited(
+					dev, "unmapped interrupt %d\n", level);
+				continue;
+			}
+			handle_nested_irq(nested_irq);
+		}
+		if (ret)
+			break;
+	}
+
+	return IRQ_RETVAL(asserted);
+}
+
 static irqreturn_t pca953x_irq_handler(int irq, void *devid)
 {
 	struct pca953x_chip *chip = devid;
@@ -1018,6 +1200,9 @@ static irqreturn_t pca953x_irq_handler(int irq, void *devid)
 	DECLARE_BITMAP(pending, MAX_LINE);
 	int level;
 	bool ret;
+
+	if (PCA_CHIP_TYPE(chip->driver_data) == TCA6418_TYPE)
+		return tca6418_irq_handler(chip);
 
 	bitmap_zero(pending, MAX_LINE);
 
@@ -1040,6 +1225,27 @@ static irqreturn_t pca953x_irq_handler(int irq, void *devid)
 	}
 
 	return IRQ_RETVAL(ret);
+}
+
+static int tca6418_irq_init(struct pca953x_chip *chip)
+{
+	DECLARE_BITMAP(disabled, MAX_LINE);
+	u8 int_status[MAX_BANK];
+	int ret;
+
+	bitmap_zero(disabled, MAX_LINE);
+
+	guard(mutex)(&chip->i2c_lock);
+	ret = pca953x_write_regs(chip, TCA6418_GPIO_INT_ENABLE, disabled);
+	if (ret)
+		return ret;
+
+	ret = regmap_bulk_read(chip->regmap, TCA6418_GPIO_INT_STATUS,
+			       int_status, NBANK(chip));
+	if (ret)
+		return ret;
+
+	return regmap_write(chip->regmap, TCA6418_INT_STATUS, TCA6418_GPI_INT);
 }
 
 static int pca953x_irq_setup(struct pca953x_chip *chip, int irq_base)
@@ -1067,21 +1273,30 @@ static int pca953x_irq_setup(struct pca953x_chip *chip, int irq_base)
 	if (!(chip->driver_data & PCA_INT))
 		return 0;
 
-	ret = pca953x_read_regs(chip, chip->regs->input, irq_stat);
-	if (ret)
-		return ret;
+	if (PCA_CHIP_TYPE(chip->driver_data) == TCA6418_TYPE) {
+		ret = tca6418_irq_init(chip);
+		if (ret)
+			return ret;
+	} else {
+		ret = pca953x_read_regs(chip, chip->regs->input, irq_stat);
+		if (ret)
+			return ret;
 
-	/*
-	 * There is no way to know which GPIO line generated the
-	 * interrupt.  We have to rely on the previous read for
-	 * this purpose.
-	 */
-	pca953x_read_regs(chip, chip->regs->direction, reg_direction);
-	bitmap_and(chip->irq_stat, irq_stat, reg_direction, gc->ngpio);
+		/*
+		 * There is no way to know which GPIO line generated the
+		 * interrupt.  We have to rely on the previous read for
+		 * this purpose.
+		 */
+		pca953x_read_regs(chip, chip->regs->direction, reg_direction);
+		bitmap_and(chip->irq_stat, irq_stat, reg_direction, gc->ngpio);
+	}
 	mutex_init(&chip->irq_lock);
 
 	girq = &chip->gpio_chip.irq;
-	gpio_irq_chip_set_chip(girq, &pca953x_irq_chip);
+	if (PCA_CHIP_TYPE(chip->driver_data) == TCA6418_TYPE)
+		gpio_irq_chip_set_chip(girq, &tca6418_irq_chip);
+	else
+		gpio_irq_chip_set_chip(girq, &pca953x_irq_chip);
 	/* This will let us handle the parent IRQ in the driver */
 	girq->parent_handler = NULL;
 	girq->num_parents = 0;
@@ -1236,7 +1451,8 @@ static int pca953x_probe(struct i2c_client *client)
 
 	pca953x_setup_gpio(chip, chip->driver_data & PCA_GPIO_MASK);
 
-	if (NBANK(chip) > 2 || PCA_CHIP_TYPE(chip->driver_data) == PCA957X_TYPE) {
+	if ((NBANK(chip) > 2 || PCA_CHIP_TYPE(chip->driver_data) == PCA957X_TYPE) &&
+	    PCA_CHIP_TYPE(chip->driver_data) != TCA6418_TYPE) {
 		dev_info(dev, "using AI\n");
 		regmap_config = &pca953x_ai_i2c_regmap;
 	} else {
